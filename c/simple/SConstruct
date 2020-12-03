@@ -11,7 +11,7 @@ env = DefaultEnvironment()
 env["STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME"] = 1
 
 # Define our options. Use future-proofed names for platforms.
-platform_array = ["", "windows", "linuxbsd", "macos", "x11", "linux", "osx"]
+platform_array = ["", "windows", "linuxbsd", "macos", "x11", "linux", "osx", "javascript"]
 opts.Add(EnumVariable("target", "Compilation target", "debug", ["d", "debug", "r", "release"]))
 opts.Add(EnumVariable("platform", "Compilation platform", "", platform_array))
 opts.Add(EnumVariable("p", "Alias for 'platform'", "", platform_array))
@@ -71,6 +71,18 @@ elif env["platform"] == "windows":
         env.Append(CCFLAGS=["-EHsc", "-D_DEBUG", "-MDd"])
     else:
         env.Append(CCFLAGS=["-O2", "-EHsc", "-DNDEBUG", "-MD"])
+
+elif env["platform"] == "javascript":
+    env["ENV"] = os.environ
+    env["CC"] = "emcc"
+    env["CXX"] = "em++"
+    env["AR"] = "emar"
+    env["RANLIB"] = "emranlib"
+    env.Append(CPPFLAGS=["-s", "SIDE_MODULE=1"])
+    env.Append(LINKFLAGS=["-s", "SIDE_MODULE=1"])
+    env["SHOBJSUFFIX"] = ".bc"
+    env["SHLIBSUFFIX"] = ".wasm"
+    env.Replace(SHLINKFLAGS='$LINKFLAGS')
 
 # Make sure our library includes the Godot headers.
 env.Append(CPPPATH=[".", godot_headers_path])
